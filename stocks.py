@@ -13,10 +13,11 @@ import requests
 class GetData:
     def __init__(self, ticker):
         self.ticker = ticker
+
     def get_ticker(self):
         try:
             stock = yf.Ticker(self.ticker)
-            data = stock.history(period='1mo')
+            data = stock.history(period='6mo')
 
 
             if data.empty:
@@ -46,6 +47,15 @@ class GetData:
         returns = self.daily_return()
         volatility = np.nanstd(returns)
         return volatility
+    def moving_average(self, window):
+        if window < 0:
+            return False
+
+        moving = self.get_data()['Close']
+        moving_average_data = moving.rolling(window=window).mean()
+        return moving_average_data
+
+
     def get_timeframe(self):
         df = self.get_data()
         df['Date'] = pd.to_datetime(df['Date'])
@@ -78,12 +88,21 @@ def return_data(get):
     print(f'volatility: {get.volatility():.02f}%')
     closing_data = get.get_data()['Close']
     timeframe = get.get_timeframe()
-    plot_data(timeframe, closing_data)
+    window = 20
+    twenty_day_moving_average = get.moving_average(window)
+    plot_moving_closing(timeframe, closing_data, twenty_day_moving_average, window)
 
-def plot_data(x, y):
+def plot_moving_closing(x, y, moving_average, window):
     x = np.array(x)
-    plt.plot(x, y)
-    plt.xticks(fontsize=8, rotation=45)
+    plt.plot(x, y, label='closing price')
+    plt.plot(x, moving_average, label=f'{window} day moving average')
+    plt.legend()
+    plt.xticks(labels=x[0:len(x):10],
+               ticks=np.arange(0,len(x),10),
+                fontsize=8,
+               rotation=45)
+    plt.xlabel('Date in month-day')
+    plt.ylabel('USD')
     plt.show()
 
 
