@@ -1,0 +1,5 @@
+stock market analyzer planner
+
+1. create class that requests a ticker from user, verifies it and saves the data to a csv file
+2. create a class that analyzes stock data, average price, daily return, volatility
+3. create a class that plots it on graph
