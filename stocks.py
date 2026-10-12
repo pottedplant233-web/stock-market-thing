@@ -4,6 +4,7 @@ import pandas as pd
 import yfinance as yf
 from yfinance import ticker
 import re
+from statistics import mean
 
 import requests
 
@@ -45,15 +46,21 @@ class GetData:
 
     def volatility(self):
         returns = self.daily_return()
-        volatility = np.nanstd(returns)
+        volatility = returns.std()
         return volatility
     def moving_average(self, window):
-        if window < 0:
+        if window < 1:
             return False
 
         moving = self.get_data()['Close']
         moving_average_data = moving.rolling(window=window).mean()
         return moving_average_data
+    def moving_volatility(self, window):
+        d_return = self.daily_return()
+        moving_volatility = d_return.rolling(window=window).std()
+
+        return moving_volatility
+
 
 
     def get_timeframe(self):
@@ -86,20 +93,24 @@ def main():
 def return_data(get, tick_request):
     print(f'average closing price: {get.avg_closing():.02f}$')
     print(f'average daily return: {get.avg_return():.02f}%')
-    print(f'volatility: {get.volatility():.02f}%')
+    print(f'average volatility: {get.volatility():.02f}%')
     closing_data = get.get_data()['Close']
     timeframe = get.get_timeframe()
     window = 20
+    daily_return = get.daily_return()
+    volatility = get.volatility()
+    five_day_volatility = get.moving_volatility(5)
+    twenty_rolling_volatility = get.moving_volatility(window)
     twenty_day_moving_average = get.moving_average(window)
     sp = percent_performance(sandp())
     closing_percent = percent_performance(closing_data)
-    plot_moving_closing(timeframe, closing_data, twenty_day_moving_average, window, sp, tick_request, closing_percent)
+    plot_moving_closing(timeframe, closing_data, twenty_day_moving_average, window, sp, tick_request, closing_percent, twenty_rolling_volatility, daily_return, five_day_volatility)
 
-def plot_moving_closing(x, y, moving_average, window, sp, tick_request, closing_percent):
+def plot_moving_closing(x, y, twenty_day_moving_average, window, sp, tick_request, closing_percent, twenty_rolling_volatility, daily_return, five_day_volatility):
     x = np.array(x)
-    fig, axes = plt.subplots(2, 1, figsize=(12,8), sharex=True)
+    fig, axes = plt.subplots(3, 1, figsize=(12,10), sharex=True)
     axes[0].plot(x, y, label='closing price')
-    axes[0].plot(x, moving_average, label=f'{window} day moving average', color='purple')
+    axes[0].plot(x, twenty_day_moving_average, label=f'{window} day moving average', color='purple')
     axes[0].set_xlabel('Date in month-day')
     axes[0].set_ylabel('USD')
     axes[0].set_title(f'{tick_request} to moving average')
@@ -112,11 +123,18 @@ def plot_moving_closing(x, y, moving_average, window, sp, tick_request, closing_
     axes[1].set_title(f'{tick_request} to S&P 500 percent performance')
     axes[1].legend()
     axes[1].grid()
+    axes[2].scatter(x, twenty_rolling_volatility, label='twenty day moving volatility', color='red')
+    axes[2].scatter(x, daily_return, label=f'{tick_request} daily return')
+    axes[2].scatter(x, five_day_volatility, label=f'{tick_request} five day volatility')
+    axes[2].set_xlabel('Date in month-day')
+    axes[2].set_ylabel('percentage in %')
+    axes[2].set_title(f'{tick_request} daily return to moving volatility')
+    axes[2].legend()
+    axes[2].grid()
     plt.xticks(labels=x[0:len(x):10],
                ticks=np.arange(0,len(x),10),
                 fontsize=8,
                rotation=45)
-    #add grid lines
 
     plt.tight_layout()
     plt.show()
