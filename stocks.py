@@ -113,7 +113,7 @@ def plot_moving_closing(x, y, twenty_day_moving_average, window, sp, tick_reques
     axes[0].plot(x, twenty_day_moving_average, label=f'{window} day moving average', color='purple')
     axes[0].set_xlabel('Date in month-day')
     axes[0].set_ylabel('USD')
-    axes[0].set_title(f'{tick_request} to moving average')
+    axes[0].set_title(f'{tick_request} closing price to {window} day moving average')
     axes[0].legend()
     axes[0].grid()
     axes[1].plot(x, sp, label='S&P percent performance', color='purple')
