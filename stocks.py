@@ -103,16 +103,20 @@ def plot_moving_closing(x, y, moving_average, window, sp, tick_request, closing_
     axes[0].set_xlabel('Date in month-day')
     axes[0].set_ylabel('USD')
     axes[0].set_title(f'{tick_request} to moving average')
+    axes[0].legend()
+    axes[0].grid()
     axes[1].plot(x, sp, label='S&P percent performance', color='purple')
     axes[1].plot(x, closing_percent, label=f'{tick_request} percent performance')
     axes[1].set_xlabel('Date in month-day')
     axes[1].set_ylabel('percent performance %')
     axes[1].set_title(f'{tick_request} to S&P 500 percent performance')
-    plt.legend()
+    axes[1].legend()
+    axes[1].grid()
     plt.xticks(labels=x[0:len(x):10],
                ticks=np.arange(0,len(x),10),
                 fontsize=8,
                rotation=45)
+    #add grid lines
 
     plt.tight_layout()
     plt.show()
